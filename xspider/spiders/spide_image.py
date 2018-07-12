@@ -9,7 +9,7 @@ import os
 
 class Sxspider(scrapy.Spider):
     name = "sxspider_image"
-    allowed_domians = ["http://ladyxingbs.com/"]
+    allowed_domians = ["http://ladyxingbs.com/", "https://www.wifi588.net/"]
     start_urls = [
         "http://ladyxingbs.com/"
     ]
@@ -22,20 +22,39 @@ class Sxspider(scrapy.Spider):
     }
 
     def parse_item(self, response):
+        # 获取item
         xitem = response.meta['item']
+
+        # 解析title并放入item中
         title = response.css("#thread_subject::text").extract()
         xitem['title'] = title
+
+        # 解析图片url
         img_urls = response.css("img::attr(file)").extract()
         img_useful_url = []
         for img_url in img_urls:
             if re.match(r"^http", img_url):
                 img_useful_url.append(img_url)
         xitem['image_urls'] = img_useful_url
+
+        # 解析文件url
+        file_usefull_urls = []
+        file_urls = response.css("a[href*='attachment']::attr(href)").extract()
+        for file_url in file_urls:
+            if re.match(r"^forum", file_url):
+                file_usefull_urls.append(os.path.join("http://ladyxingbs.com/", file_url))
+        xitem['file_urls'] = file_usefull_urls
+
         yield xitem
 
     def parse(self, response):
         urls = response.css("th.new > a.s.xst::attr(href)").extract()
+        count = 0
         for url in urls:
+            count = count + 1
+            if count == 1:
+                continue  # 过滤掉第一条
+
             full_url = os.path.join("http://ladyxingbs.com/", url)
             item = SxspiderItem(url=full_url, page=response.meta['page'])
             req = scrapy.Request(full_url, callback=self.parse_item)
@@ -45,6 +64,7 @@ class Sxspider(scrapy.Spider):
     '''
         通过selenium登录sex8
     '''
+
     def start_requests(self):
         browser = webdriver.Chrome(executable_path="D:\\pycharm\\drivers\\chromedriver.exe")
         browser.get("http://ladyxingbs.com/")
@@ -61,7 +81,7 @@ class Sxspider(scrapy.Spider):
         for cookie in cookiess:
             cookie_dict[cookie['name']] = cookie['value']
 
-        for i in range(50):
+        for i in range(1):
             yield scrapy.Request(url="http://ladyxingbs.com/forum-798-" + str(i + 1) + ".html", dont_filter=True,
                                  cookies=cookie_dict, meta={"page": "page" + str(i + 1)})
 

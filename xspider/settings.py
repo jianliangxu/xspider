@@ -65,10 +65,8 @@ ROBOTSTXT_OBEY = False
 # Configure item pipelines
 # See https://doc.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
-    #'xspider.pipelines.XspiderPipeline': 300,
-    #'xspider.spiders.MyImagesPipeline.MyImagesPipeline': 3,
+    'xspider.spiders.MyImagesPipeline.MyImagesPipeline': 3,
     'xspider.spiders.MyFilePipeline.MyFilePipeline': 2
-    #'scrapy.pipelines.images.ImagesPipeline': 1
 }
 IMAGES_URLS_FIELD = 'image_urls'
 IMAGES_STORE = "D:\\pycharm\\images"
